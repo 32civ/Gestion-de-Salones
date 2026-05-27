@@ -6,6 +6,18 @@ import {
   getCursos, getSalones, getHorarios, getRecursos,
 } from '../../api/asignacionesApi';
 
+// Aprobaciones (para leer comentarios de rechazo)
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:7138';
+const getAprobaciones = async () => {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${BASE_URL}/api/Aprobaciones`, {
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(typeof data === 'string' ? data : data.message || 'Error');
+  return data;
+};
+
 // ─── Diseño ────────────────────────────────────────────────────────────────
 const C = {
   naranja:       '#E8611A', naranjaOsc:    '#C4511A', naranjaClaro:  '#FFF0E6',
@@ -508,6 +520,25 @@ function ModalDetalle({ asignacion, onCerrar, onCancelar, esAdmin }) {
         </div>
       ))}
 
+      {/* Comentario de rechazo — visible solo para el admin */}
+      {asignacion.estado === 'Rechazado' && asignacion.comentarioRechazo && (
+        <div style={{
+          background: C.rojoClaro, border: `1px solid ${C.rojo}30`,
+          borderRadius: 10, padding: '14px 16px', marginTop: 16,
+          display: 'flex', gap: 10,
+        }}>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>💬</span>
+          <div>
+            <p style={{ margin: '0 0 4px', fontSize: 11, fontWeight: 700, color: C.rojo, textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: '"DM Sans", sans-serif' }}>
+              Motivo del rechazo
+            </p>
+            <p style={{ margin: 0, fontSize: 13, color: '#7F1D1D', fontFamily: '"DM Sans", sans-serif', lineHeight: 1.5 }}>
+              {asignacion.comentarioRechazo}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
         <Btn variante="neutro" onClick={onCerrar} full>Cerrar</Btn>
         {esAdmin && asignacion.estado !== 'Cancelada' && (
@@ -583,6 +614,25 @@ function TarjetaAsignacion({ asignacion, esAdmin, onVer, onCancelar }) {
         </p>
       </div>
 
+      {/* Comentario de rechazo */}
+      {asignacion.estado === 'Rechazado' && asignacion.comentarioRechazo && (
+        <div style={{
+          background: C.rojoClaro, border: `1px solid ${C.rojo}25`,
+          borderRadius: 8, padding: '8px 10px',
+          display: 'flex', gap: 6, alignItems: 'flex-start',
+        }}>
+          <span style={{ fontSize: 13, flexShrink: 0 }}>💬</span>
+          <div>
+            <p style={{ margin: '0 0 2px', fontSize: 10, fontWeight: 700, color: C.rojo, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: '"DM Sans", sans-serif' }}>
+              Motivo del rechazo
+            </p>
+            <p style={{ margin: 0, fontSize: 12, color: '#7F1D1D', fontFamily: '"DM Sans", sans-serif', lineHeight: 1.4 }}>
+              {asignacion.comentarioRechazo}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Acciones */}
       <div style={{ borderTop: `1px solid ${C.gris200}`, paddingTop: 10, display: 'flex', gap: 6 }}>
         <Btn variante="neutro" small full onClick={() => onVer(asignacion)}>👁 Ver</Btn>
@@ -621,14 +671,26 @@ export default function GestionAsignaciones() {
   const cargarTodo = useCallback(async () => {
     setCargando(true);
     try {
-      const [a, c, s, h, r] = await Promise.all([
-        getAsignaciones(), getCursos(), getSalones(), getHorarios(), getRecursos(),
+      const [a, c, s, h, r, ap] = await Promise.allSettled([
+        getAsignaciones(), getCursos(), getSalones(), getHorarios(), getRecursos(), getAprobaciones(),
       ]);
-      setAsignaciones(a);
-      setCursos(c);
-      setSalones(s);
-      setHorarios(h);
-      setRecursos(r);
+      // Cruzar comentarios de rechazo con las asignaciones
+      const asigs = a.status === 'fulfilled' ? a.value : [];
+      const aprobaciones = ap.status === 'fulfilled' ? ap.value : [];
+      // Mapa: asignacionId -> comentario de rechazo
+      const mapaComentarios = {};
+      aprobaciones.forEach(ap => {
+        if (!ap.aprobado && ap.asignacionId) mapaComentarios[ap.asignacionId] = ap.comentario;
+      });
+      const asigConComentario = asigs.map(asig => ({
+        ...asig,
+        comentarioRechazo: asig.estado === 'Rechazado' ? (mapaComentarios[asig.id] || '') : '',
+      }));
+      setAsignaciones(asigConComentario);
+      if (c.status === 'fulfilled') setCursos(c.value);
+      if (s.status === 'fulfilled') setSalones(s.value);
+      if (h.status === 'fulfilled') setHorarios(h.value);
+      if (r.status === 'fulfilled') setRecursos(r.value);
     } catch (e) {
       mostrarToast(e.message, 'error');
     } finally { setCargando(false); }

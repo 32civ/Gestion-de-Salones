@@ -659,6 +659,18 @@ export default function GestionHorarios() {
             justifyContent: 'space-between', flexWrap: 'wrap',
             gap: 16, marginBottom: 28,
           }}>
+            {/* Botón volver */}
+              <button onClick={() => navigate(-1)} style={{
+                width: 38, height: 38, borderRadius: 10,
+                background: C.blanco, border: `1.5px solid ${C.gris200}`,
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 16, color: C.gris600, boxShadow: sombra,
+                transition: 'all 0.14s', flexShrink: 0,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = C.naranja; e.currentTarget.style.color = C.naranja; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = C.gris200; e.currentTarget.style.color = C.gris600; }}
+              title="Volver"
+              >←</button>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
                 <div style={{

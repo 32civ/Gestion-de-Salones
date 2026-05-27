@@ -37,7 +37,7 @@ function DashboardDocente() {
             setAsignacionesAprobadas(aprobadas);
 
             setStats({
-                totalCursos: data.length,
+                totalCursos: aprobadas.length,
                 pendientes: pendientes.length,
                 aprobadas: aprobadas.length
             });

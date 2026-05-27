@@ -72,21 +72,8 @@ function DashboardAdministrativo() {
             icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         },
         {
-            label: "Materias", path: "/materias",
-            icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-        },
-        {
-            label: "Cursos", path: "/cursos",
-            icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-        },
-        {
-            label: "Docentes", path: "/docentes",
-            icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-        },
-        {
-            label: "Carreras", path: "/carreras",
-            icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
-        },
+            label: "Recursos", path: "/recursos"
+        }
     ];
 
     const metricCards = [
@@ -158,7 +145,7 @@ function DashboardAdministrativo() {
                             {new Date().toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
                         </p>
                     </div>
-                    <button onClick={() => navigate("/usuarios/nuevo")}
+                    <button onClick={() => navigate("/usuarios")}//<------!! me debe abrir directamente el panel de agregar nuevos usuarios
                         style={{ display: "flex", alignItems: "center", gap: "8px", padding: "9px 16px", background: "#E8600A", color: "white", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -228,10 +215,7 @@ function DashboardAdministrativo() {
                         <h3 style={{ fontSize: "14px", fontWeight: 500, color: "#1a1a1a", margin: "0 0 1rem" }}>Accesos rápidos</h3>
                         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                             {[
-                                { label: "Crear nuevo usuario", path: "/usuarios/nuevo", primary: true },
-                                { label: "Registrar docente", path: "/docentes/nuevo" },
-                                { label: "Crear nuevo curso", path: "/cursos/nuevo" },
-                                { label: "Gestionar carreras", path: "/carreras" },
+                                { label: "Crear nuevo usuario", path: "/usuarios", primary: true },
                             ].map((item) => (
                                 <button key={item.path} onClick={() => navigate(item.path)}
                                     style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", background: item.primary ? "#FFF0E8" : "#f5f5f5", border: "none", borderRadius: "8px", fontSize: "13px", color: item.primary ? "#E8600A" : "#555", fontWeight: item.primary ? 500 : 400, cursor: "pointer", textAlign: "left" }}>
