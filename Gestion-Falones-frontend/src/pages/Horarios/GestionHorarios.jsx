@@ -74,7 +74,7 @@ const formatDuracion = (min) => {
   return `${h}h ${m}min`;
 };
 
-// ─── Toast ─────────────────────────────────────────────────────────────────
+// ─── Toast ───────────────────────────────────────────────────
 function Toast({ msg, tipo, onClose }) {
   useEffect(() => {
     if (!msg) return;
@@ -173,7 +173,7 @@ function Btn({ children, onClick, disabled, variante = 'primario', full = false,
   );
 }
 
-// ─── Modal: Formulario crear/editar horario ────────────────────────────────
+// ─── Formulario crear y editar horario ────────────────────────────────
 function ModalFormHorario({ inicial, onGuardar, onCerrar, cargando }) {
   const diaInicial = inicial
     ? DIAS.find(d => d.nombre === inicial.dia)?.num || 1
@@ -329,7 +329,7 @@ function ModalFormHorario({ inicial, onGuardar, onCerrar, cargando }) {
   );
 }
 
-// ─── Modal: Confirmar eliminación ─────────────────────────────────────────
+// ─── Confirmar eliminación ─────────────────────────────────────────
 function ModalEliminar({ horario, onConfirmar, onCerrar, cargando }) {
   const diaInfo = DIAS.find(d => d.nombre === horario.dia) || DIAS[0];
   return (
@@ -566,7 +566,7 @@ export default function GestionHorarios() {
   const [horarios,      setHorarios]      = useState([]);
   const [cargando,      setCargando]      = useState(true);
   const [filtroDia,     setFiltroDia]     = useState(0);   // 0 = todos
-  const [vista,         setVista]         = useState('tarjetas'); // 'tarjetas' | 'semanal'
+  const [vista,         setVista]         = useState('tarjetas'); // tarjetas / semanal
   const [modalCrear,    setModalCrear]    = useState(false);
   const [horarioEditar, setHorarioEditar] = useState(null);
   const [horarioElim,   setHorarioElim]   = useState(null);
@@ -659,18 +659,6 @@ export default function GestionHorarios() {
             justifyContent: 'space-between', flexWrap: 'wrap',
             gap: 16, marginBottom: 28,
           }}>
-            {/* Botón volver */}
-              <button onClick={() => navigate(-1)} style={{
-                width: 38, height: 38, borderRadius: 10,
-                background: C.blanco, border: `1.5px solid ${C.gris200}`,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 16, color: C.gris600, boxShadow: sombra,
-                transition: 'all 0.14s', flexShrink: 0,
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = C.naranja; e.currentTarget.style.color = C.naranja; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = C.gris200; e.currentTarget.style.color = C.gris600; }}
-              title="Volver"
-              >←</button>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
                 <div style={{

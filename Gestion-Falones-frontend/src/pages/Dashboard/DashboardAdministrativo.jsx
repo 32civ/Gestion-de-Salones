@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
-import {
-   useNavigate,
-   useLocation
-} from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function DashboardAdministrativo() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [stats, setStats] = useState({
         totalUsuarios: 0,
         usuariosActivos: 0,
@@ -18,36 +16,30 @@ function DashboardAdministrativo() {
 
     const token = localStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
-    const usuario = JSON.parse(localStorage.getItem("usuario")
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
 
-);
-
-    useEffect(() => {
-        cargarDatos();
-    }, []);
+    useEffect(() => { cargarDatos(); }, []);
 
     const cargarDatos = async () => {
         try {
             const [usuariosRes, docentesRes, cursosRes, carrerasRes] = await Promise.all([
-                fetch("https://localhost:7138/api/Usuarios", { headers }),
-                fetch("https://localhost:7138/api/Docentes", { headers }),
-                fetch("https://localhost:7138/api/Cursos", { headers }),
-                fetch("https://localhost:7138/api/Carreras", { headers })
+                fetch("https://localhost:7138/api/Usuarios",  { headers }),
+                fetch("https://localhost:7138/api/Docentes",  { headers }),
+                fetch("https://localhost:7138/api/Cursos",    { headers }),
+                fetch("https://localhost:7138/api/Carreras",  { headers })
             ]);
-
-            const usuariosData = await usuariosRes.json();
-            const docentesData = await docentesRes.json();
-            const cursosData = await cursosRes.json();
-            const carrerasData = await carrerasRes.json();
+            const usuariosData  = await usuariosRes.json();
+            const docentesData  = await docentesRes.json();
+            const cursosData    = await cursosRes.json();
+            const carrerasData  = await carrerasRes.json();
 
             setStats({
-                totalUsuarios: usuariosData.length,
+                totalUsuarios:   usuariosData.length,
                 usuariosActivos: usuariosData.filter(u => u.activo).length,
-                totalDocentes: docentesData.length,
-                totalCursos: cursosData.length,
-                totalCarreras: carrerasData.length
+                totalDocentes:   docentesData.length,
+                totalCursos:     cursosData.length,
+                totalCarreras:   carrerasData.length
             });
-
             setUsuarios(usuariosData.slice(0, 5));
         } catch (error) {
             console.error("Error cargando datos:", error);
@@ -62,6 +54,7 @@ function DashboardAdministrativo() {
         navigate("/");
     };
 
+    // ── Nav items — ahora con Reportes ──
     const navItems = [
         {
             label: "Dashboard", path: "/dashboard",
@@ -72,15 +65,20 @@ function DashboardAdministrativo() {
             icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         },
         {
-            label: "Recursos", path: "/recursos"
-        }
+            label: "Recursos", path: "/recursos",
+            icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+        },
+        {
+            label: "Reportes", path: "/reportes",
+            icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        },
     ];
 
     const metricCards = [
-        { label: "Usuarios", value: stats.totalUsuarios, sub: `${stats.usuariosActivos} activos`, bg: "#FFF0E8", stroke: "#E8600A" },
-        { label: "Docentes", value: stats.totalDocentes, sub: "Registrados", bg: "#e8f5e9", stroke: "#2e7d32" },
-        { label: "Cursos activos", value: stats.totalCursos, sub: "Este semestre", bg: "#e3f2fd", stroke: "#1565c0" },
-        { label: "Carreras", value: stats.totalCarreras, sub: "Registradas", bg: "#f3e5f5", stroke: "#6a1b9a" },
+        { label: "Usuarios",       value: stats.totalUsuarios,  sub: `${stats.usuariosActivos} activos`,  bg: "#FFF0E8", stroke: "#E8600A" },
+        { label: "Docentes",       value: stats.totalDocentes,  sub: "Registrados",                       bg: "#e8f5e9", stroke: "#2e7d32" },
+        { label: "Cursos activos", value: stats.totalCursos,    sub: "Este semestre",                     bg: "#e3f2fd", stroke: "#1565c0" },
+        { label: "Carreras",       value: stats.totalCarreras,  sub: "Registradas",                       bg: "#f3e5f5", stroke: "#6a1b9a" },
     ];
 
     if (loading) return (
@@ -92,13 +90,13 @@ function DashboardAdministrativo() {
     return (
         <div style={{ minHeight: "100vh", background: "#f5f5f5", display: "flex" }}>
 
-            {/* Sidebar */}
+            {/* ── Sidebar ── */}
             <div style={{ width: "220px", background: "white", borderRight: "1px solid #eee", display: "flex", flexDirection: "column", padding: "1.5rem 0", flexShrink: 0 }}>
                 <div style={{ padding: "0 1.25rem 1.5rem", borderBottom: "1px solid #eee" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                         <div style={{ width: "36px", height: "36px", background: "#E8600A", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 10.5V19a1 1 0 001 1h6v-5h4v5h6a1 1 0 001-1v-8.5M9 21V12h6v9M3 10.5L12 3l9 7.5" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 10.5V19a1 1 0 001 1h6v-5h4v5h6a1 1 0 001-1v-8.5M9 21V12h6v9M3 10.5L12 3l9 7.5"/>
                             </svg>
                         </div>
                         <div>
@@ -125,14 +123,14 @@ function DashboardAdministrativo() {
                     <a onClick={cerrarSesion}
                         style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 12px", borderRadius: "8px", fontSize: "13px", color: "#e53e3e", cursor: "pointer" }}>
                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                         </svg>
                         Cerrar sesión
                     </a>
                 </div>
             </div>
 
-            {/* Main */}
+            {/* ── Main ── */}
             <div style={{ flex: 1, padding: "2rem", overflow: "auto" }}>
 
                 {/* Header */}
@@ -145,10 +143,10 @@ function DashboardAdministrativo() {
                             {new Date().toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
                         </p>
                     </div>
-                    <button onClick={() => navigate("/usuarios")}//<------!! me debe abrir directamente el panel de agregar nuevos usuarios
+                    <button onClick={() => navigate("/usuarios")}
                         style={{ display: "flex", alignItems: "center", gap: "8px", padding: "9px 16px", background: "#E8600A", color: "white", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
                         </svg>
                         Nuevo usuario
                     </button>
@@ -162,7 +160,7 @@ function DashboardAdministrativo() {
                                 <p style={{ fontSize: "12px", color: "#888", margin: 0 }}>{card.label}</p>
                                 <div style={{ width: "32px", height: "32px", background: card.bg, borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke={card.stroke} strokeWidth={1.5}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                     </svg>
                                 </div>
                             </div>
@@ -172,7 +170,7 @@ function DashboardAdministrativo() {
                     ))}
                 </div>
 
-                {/* Bottom */}
+                {/* Bottom grid */}
                 <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "1rem" }}>
 
                     {/* Usuarios recientes */}
@@ -188,11 +186,7 @@ function DashboardAdministrativo() {
                             </thead>
                             <tbody>
                                 {usuarios.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="3" style={{ padding: "1rem 0", color: "#aaa", textAlign: "center" }}>
-                                            No hay usuarios registrados
-                                        </td>
-                                    </tr>
+                                    <tr><td colSpan="3" style={{ padding: "1rem 0", color: "#aaa", textAlign: "center" }}>No hay usuarios registrados</td></tr>
                                 ) : (
                                     usuarios.map((u) => (
                                         <tr key={u.id} style={{ borderBottom: "1px solid #f9f9f9" }}>
@@ -216,11 +210,12 @@ function DashboardAdministrativo() {
                         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                             {[
                                 { label: "Crear nuevo usuario", path: "/usuarios", primary: true },
+                                { label: "Ver reportes",        path: "/reportes", primary: false },
                             ].map((item) => (
                                 <button key={item.path} onClick={() => navigate(item.path)}
                                     style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", background: item.primary ? "#FFF0E8" : "#f5f5f5", border: "none", borderRadius: "8px", fontSize: "13px", color: item.primary ? "#E8600A" : "#555", fontWeight: item.primary ? 500 : 400, cursor: "pointer", textAlign: "left" }}>
                                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                                     </svg>
                                     {item.label}
                                 </button>

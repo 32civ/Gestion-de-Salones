@@ -7,6 +7,11 @@ import GestionAsignaciones from "../pages/Asignaciones/GestionAsignaciones";
 import GestionCarrerasCurso from "../pages/Asignaciones/GestionCarrerasCurso";
 import GestionUsuarios from "../pages/Administrativo/GestionUsuarios";
 import GestionRecursos from "../pages/Administrativo/GestionRecursos";
+import MisCursos from "../pages/Docente/misCursos";
+import MisAsignaciones from "../pages/Docente/MisAsignaciones";
+import Reportes from "../pages/Administrativo/Reportes";
+
+
 
 
 function AppRoutes() {
@@ -21,6 +26,9 @@ function AppRoutes() {
                 <Route path="/admin/carreras-cursos" element={<GestionCarrerasCurso />} />
                 <Route path="/usuarios" element={<GestionUsuarios />} />
                 <Route path="/recursos" element={<GestionRecursos />} />
+                <Route path="/mis-cursos" element={<MisCursos />} />
+                <Route path="/mis-asignaciones" element={<MisAsignaciones />} />
+                <Route path="/reportes" element={<Reportes />} />
             </Routes>
         </BrowserRouter>
     );
