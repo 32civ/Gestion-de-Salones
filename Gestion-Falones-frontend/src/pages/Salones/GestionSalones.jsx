@@ -3,6 +3,7 @@ import {
   getSalones, crearSalon, editarSalon, eliminarSalon,
   getRecursos, agregarRecursoASalon, quitarRecursoDeSalon,
 } from '../../api/salones/salonesApi';
+import { useNavigate } from 'react-router-dom';
 
 // ─── Tokens de diseño ──────────────────────────────────────────────────────
 const C = {
@@ -635,6 +636,7 @@ export default function GestionSalones() {
   const [busqueda,      setBusqueda]      = useState('');
   const [filtroMin,     setFiltroMin]     = useState('');
   const [filtroMax,     setFiltroMax]     = useState('');
+  const navigate = useNavigate();
 
   // Modales activos
   const [modalCrear,    setModalCrear]    = useState(false);
@@ -738,6 +740,19 @@ export default function GestionSalones() {
             justifyContent: 'space-between', flexWrap: 'wrap',
             gap: 16, marginBottom: 28,
           }}>
+            <button
+              onClick={() => navigate('/dashboard')}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: C.blanco, border: `1.5px solid ${C.gris200}`,
+                borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
+                fontSize: 13, fontWeight: 700, color: C.gris600,
+                fontFamily: '"DM Sans", sans-serif',
+                marginBottom: 16, boxShadow: sombra,
+              }}
+            >
+              ← Volver
+            </button>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
                 <div style={{

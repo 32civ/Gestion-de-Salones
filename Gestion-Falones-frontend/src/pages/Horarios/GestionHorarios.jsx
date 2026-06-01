@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getHorarios, crearHorario, editarHorario, eliminarHorario } from '../../api/horariosApi';
+import { useNavigate } from 'react-router-dom';
 
 // ─── Tokens de diseño ──────────────────────────────────────────────────────
 const C = {
@@ -572,6 +573,7 @@ export default function GestionHorarios() {
   const [horarioElim,   setHorarioElim]   = useState(null);
   const [guardando,     setGuardando]     = useState(false);
   const [toast,         setToast]         = useState({ msg: '', tipo: 'info' });
+  const navigate = useNavigate();
 
   const esAdmin = ROLES_ADMIN.includes(getRolDesdeToken());
   const mostrarToast = useCallback((msg, tipo = 'info') => setToast({ msg, tipo }), []);
@@ -659,6 +661,20 @@ export default function GestionHorarios() {
             justifyContent: 'space-between', flexWrap: 'wrap',
             gap: 16, marginBottom: 28,
           }}>
+            {/* Botón volver */}
+              <button
+                onClick={() => navigate('/dashboard')}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: C.blanco, border: `1.5px solid ${C.gris200}`,
+                  borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
+                  fontSize: 13, fontWeight: 700, color: C.gris600,
+                  fontFamily: '"DM Sans", sans-serif',
+                  marginBottom: 16, boxShadow: sombra,
+                }}
+              >
+                ← Volver
+              </button>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
                 <div style={{

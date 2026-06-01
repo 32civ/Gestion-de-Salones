@@ -513,15 +513,20 @@ export default function GestionRecursos() {
             justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 28,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <button onClick={() => navigate(-1)} style={{
-                width: 38, height: 38, borderRadius: 10,
-                background: C.blanco, border: `1.5px solid ${C.gris200}`,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 16, color: C.gris600, boxShadow: sombra, transition: 'all 0.14s', flexShrink: 0,
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = C.naranja; e.currentTarget.style.color = C.naranja; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = C.gris200; e.currentTarget.style.color = C.gris600; }}
-              title="Volver">←</button>
+              {/* Botón volver */}
+              <button
+                onClick={() => navigate('/dashboard')}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: C.blanco, border: `1.5px solid ${C.gris200}`,
+                  borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
+                  fontSize: 13, fontWeight: 700, color: C.gris600,
+                  fontFamily: '"DM Sans", sans-serif',
+                  marginBottom: 16, boxShadow: sombra,
+                }}
+              >
+                ← Volver
+              </button>
 
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
