@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import DashboardAdmin from "./DashboardAdmin";
 import DashboardAdministrativo from "./DashboardAdministrativo";
 import DashboardDocente from "./DashboardDocente";
+import DashboardEstudiante from "./Dashboardestudiante";
 
 function Dashboard() {
 
@@ -40,6 +41,13 @@ function Dashboard() {
     if (roles.includes("Docente")) {
         return <DashboardDocente />;
     }
+
+    //ESTUDIANTE
+    if (roles.includes("Estudiante")) {
+        return <DashboardEstudiante />;
+    }
+
+    
 
     return <h1>No tienes permisos</h1>;
 }

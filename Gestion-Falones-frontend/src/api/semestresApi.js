@@ -31,33 +31,38 @@ const handleResponse = async (res) => {
   return data;
 };
 
-export const getMisAsignaciones = async () => {
-  const res = await fetch(`${BASE_URL}/api/Aprobaciones/mis-asignaciones`, {
-    headers: getAuthHeaders()
-  });
+export const getSemestres = async () => {
+  const res = await fetch(`${BASE_URL}/api/Semestres`, { headers: getAuthHeaders() });
   return handleResponse(res);
 };
 
-export const aceptarAsignacion = async (id) => {
-  const res = await fetch(`${BASE_URL}/api/Aprobaciones/${id}/aceptar`, {
-    method: 'PUT',
-    headers: getAuthHeaders()
-  });
+export const getSemestreActivo = async () => {
+  const res = await fetch(`${BASE_URL}/api/Semestres/activo`, { headers: getAuthHeaders() });
   return handleResponse(res);
 };
 
-export const rechazarAsignacion = async (id, comentario) => {
-  const res = await fetch(`${BASE_URL}/api/Aprobaciones/${id}/rechazar?comentario=${encodeURIComponent(comentario)}`, {
-    method: 'PUT',
-    headers: getAuthHeaders()
-  });
-  return handleResponse(res);
-};
-
-export const calificarSalon = async (id, comentario) => {
-  const res = await fetch(`${BASE_URL}/api/Aprobaciones/${id}/calificar?comentario=${encodeURIComponent(comentario)}`, {
+export const crearSemestre = async ({ nombre, fechaInicio, fechaFin }) => {
+  const res = await fetch(`${BASE_URL}/api/Semestres`, {
     method: 'POST',
-    headers: getAuthHeaders()
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ nombre, fechaInicio, fechaFin }),
+  });
+  return handleResponse(res);
+};
+
+export const editarSemestre = async (id, { nombre, fechaInicio, fechaFin }) => {
+  const res = await fetch(`${BASE_URL}/api/Semestres/${id}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ nombre, fechaInicio, fechaFin }),
+  });
+  return handleResponse(res);
+};
+
+export const eliminarSemestre = async (id) => {
+  const res = await fetch(`${BASE_URL}/api/Semestres/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
   });
   return handleResponse(res);
 };

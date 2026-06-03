@@ -10,7 +10,10 @@ import GestionRecursos from "../pages/Administrativo/GestionRecursos";
 import MisCursos from "../pages/Docente/misCursos";
 import MisAsignaciones from "../pages/Docente/MisAsignaciones";
 import Reportes from "../pages/Administrativo/Reportes";
-
+import Dashboardestudiante from "../pages/Dashboard/Dashboardestudiante";
+import MisMateriasEstudiante from "../pages/Estudiante/MisMateriasEstudiante";
+import Matricula from "../pages/Estudiante/Matricula";
+import GestionSemestres from "../pages/Asignaciones/GestionSemestres";
 
 
 
@@ -29,6 +32,9 @@ function AppRoutes() {
                 <Route path="/mis-cursos" element={<MisCursos />} />
                 <Route path="/mis-asignaciones" element={<MisAsignaciones />} />
                 <Route path="/reportes" element={<Reportes />} />
+                <Route path="/mis-materias-estudiante" element={<MisMateriasEstudiante />} />
+                <Route path="/matricula" element={<Matricula />} />
+                <Route path="/semestres" element={<GestionSemestres />} />
             </Routes>
         </BrowserRouter>
     );

@@ -1,30 +1,37 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMisCursos } from "../../api/cursosApi";
-import { nombreDia } from "../../helpers/Dias";
+import { getMisMaterias, cancelarMatricula } from "../../api/matriculasApi";
 
-
-
-function MisCursos() {
+function MisMateriasEstudiante() {
     const navigate = useNavigate();
-    const [cursos, setCursos] = useState([]);
+    const [materias, setMaterias] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [cancelandoId, setCancelAndoId] = useState(null);
 
-    const usuario = JSON.parse(localStorage.getItem("usuario") || "{}");
+    useEffect(() => { cargarMaterias(); }, []);
 
-    useEffect(() => {
-        cargarCursos();
-    }, []);
-
-    const cargarCursos = async () => {
+    const cargarMaterias = async () => {
+        setLoading(true);
+        setError(null);
         try {
-            const data = await getMisCursos();
-            setCursos(data);
+            const data = await getMisMaterias();
+            setMaterias(data);
         } catch (err) {
-            setError(err.message || "No se pudieron cargar los cursos.");
+            setError(err.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleCancelar = async (id) => {
+        try {
+            await cancelarMatricula(id);
+            cargarMaterias();
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            setCancelAndoId(null);
         }
     };
 
@@ -37,49 +44,22 @@ function MisCursos() {
     const navItems = [
         {
             label: "Dashboard", path: "/dashboard",
-            icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
+            icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
         },
         {
-            label: "Mis cursos", path: "/mis-cursos",
-            icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+            label: "Mis materias", path: "/mis-materias-estudiante",
+            icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
         },
         {
-            label: "Mis asignaciones", path: "/mis-asignaciones",
-            icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            label: "Matrícula", path: "/matricula",
+            icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         },
-    ];
-
-    const estadoBadge = (estado) => {
-        const estilos = {
-            "Aprobado":  { bg: "#e8f5e9", color: "#2e7d32" },
-            "Pendiente": { bg: "#fff8e1", color: "#f9a825" },
-            "Rechazado": { bg: "#ffebee", color: "#c62828" },
-            "Cancelada": { bg: "#f5f5f5", color: "#888"    },
-        };
-        const s = estilos[estado] ?? { bg: "#f5f5f5", color: "#888" };
-        return (
-            <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 500, background: s.bg, color: s.color }}>
-                {estado ?? "Sin asignar"}
-            </span>
-        );
-    };
-
-    // ── Métricas calculadas desde los datos ──
-    const totalEstudiantes = cursos
-    .filter(c => c.asignacion?.estado === "Aprobado")
-    .reduce((s, c) => s + (c.estudiantesMatriculados ?? 0), 0);
-    const salonesConfirmados = cursos.filter(c => c.asignacion?.estado === "Aprobado").length;
-
-    const metricCards = [
-        { label: "Total cursos", value: cursos.filter(c => c.asignacion?.estado === "Aprobado").length, sub: "Este semestre", bg: "#FFF0E8", stroke: "#E8600A" },
-        { label: "Estudiantes totales", value: totalEstudiantes,   sub: "Matriculados en tus cursos", bg: "#e8f0fe", stroke: "#1a73e8" },
-        { label: "Salones confirmados", value: salonesConfirmados, sub: "Asignaciones aprobadas",bg: "#e8f5e9", stroke: "#2e7d32" },
     ];
 
     return (
         <div style={{ minHeight: "100vh", background: "#f5f5f5", display: "flex" }}>
 
-            {/* ── Sidebar ── */}
+            {/* Sidebar */}
             <div style={{ width: "220px", background: "white", borderRight: "1px solid #eee", display: "flex", flexDirection: "column", padding: "1.5rem 0", flexShrink: 0 }}>
                 <div style={{ padding: "0 1.25rem 1.5rem", borderBottom: "1px solid #eee" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -90,7 +70,7 @@ function MisCursos() {
                         </div>
                         <div>
                             <p style={{ fontSize: "13px", fontWeight: 500, color: "#1a1a1a", margin: 0 }}>Gestión Salones</p>
-                            <p style={{ fontSize: "11px", color: "#aaa", margin: 0 }}>Docente</p>
+                            <p style={{ fontSize: "11px", color: "#aaa", margin: 0 }}>Estudiante</p>
                         </div>
                     </div>
                 </div>
@@ -119,7 +99,7 @@ function MisCursos() {
                 </div>
             </div>
 
-            {/* ── Contenido principal ── */}
+            {/* Contenido */}
             <div style={{ flex: 1, padding: "2rem", overflow: "auto" }}>
 
                 {/* Header */}
@@ -132,15 +112,19 @@ function MisCursos() {
                         Volver
                     </button>
                     <div>
-                        <h1 style={{ fontSize: "20px", fontWeight: 500, color: "#1a1a1a", margin: "0 0 2px" }}>Mis cursos</h1>
-                        <p style={{ fontSize: "13px", color: "#888", margin: 0 }}>Cursos asignados este semestre</p>
+                        <h1 style={{ fontSize: "20px", fontWeight: 500, color: "#1a1a1a", margin: "0 0 2px" }}>Mis materias</h1>
+                        <p style={{ fontSize: "13px", color: "#888", margin: 0 }}>Materias matriculadas este semestre</p>
                     </div>
                 </div>
 
-                {/* Metric cards — solo si hay datos */}
+                {/* Cards resumen */}
                 {!loading && !error && (
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem", marginBottom: "2rem" }}>
-                        {metricCards.map((card) => (
+                        {[
+                            { label: "Total materias",    value: materias.length,   sub: "Matriculadas",         bg: "#FFF0E8", stroke: "#E8600A" },
+                            { label: "Con salón",         value: materias.filter(m => m.salonAsignado !== "Sin asignar").length, sub: "Salón confirmado", bg: "#e8f5e9", stroke: "#2e7d32" },
+                            { label: "Sin salón aún",     value: materias.filter(m => m.salonAsignado === "Sin asignar").length, sub: "Pendiente de asignación", bg: "#fff8e1", stroke: "#f9a825" },
+                        ].map((card) => (
                             <div key={card.label} style={{ background: "white", border: "0.5px solid #eee", borderRadius: "12px", padding: "1.25rem" }}>
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.75rem" }}>
                                     <p style={{ fontSize: "12px", color: "#888", margin: 0 }}>{card.label}</p>
@@ -160,22 +144,15 @@ function MisCursos() {
                 {/* Tabla */}
                 <div style={{ background: "white", border: "0.5px solid #eee", borderRadius: "12px", padding: "1.25rem" }}>
                     <h3 style={{ fontSize: "14px", fontWeight: 500, color: "#1a1a1a", margin: "0 0 1.25rem" }}>
-                        📚 Listado de cursos
+                        📚 Listado de materias
                     </h3>
 
-                    {loading && (
-                        <p style={{ textAlign: "center", color: "#aaa", fontSize: "13px", padding: "2rem 0" }}>
-                            Cargando...
-                        </p>
-                    )}
+                    {loading && <p style={{ textAlign: "center", color: "#aaa", fontSize: "13px", padding: "2rem 0" }}>Cargando...</p>}
 
                     {error && (
                         <div style={{ textAlign: "center", padding: "2rem 0" }}>
                             <p style={{ color: "#e53e3e", fontSize: "13px", marginBottom: "8px" }}>{error}</p>
-                            <button onClick={cargarCursos}
-                                style={{ padding: "6px 14px", background: "#FFF0E8", color: "#E8600A", border: "none", borderRadius: "8px", fontSize: "12px", cursor: "pointer" }}>
-                                Reintentar
-                            </button>
+                            <button onClick={cargarMaterias} style={{ padding: "6px 14px", background: "#FFF0E8", color: "#E8600A", border: "none", borderRadius: "8px", fontSize: "12px", cursor: "pointer" }}>Reintentar</button>
                         </div>
                     )}
 
@@ -183,46 +160,49 @@ function MisCursos() {
                         <table style={{ width: "100%", fontSize: "13px", borderCollapse: "collapse" }}>
                             <thead>
                                 <tr style={{ borderBottom: "1px solid #f0f0f0" }}>
-                                    {["Materia", "Carrera", "Salón", "Horario", "Recursos", "Estudiantes", "Cupo máx.", "Estado"].map(col => (
+                                    {["Materia", "Docente", "Salón", "Horario", "Acciones"].map(col => (
                                         <th key={col} style={{ textAlign: "left", padding: "6px 8px 10px", color: "#aaa", fontWeight: 400 }}>{col}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
-                                {cursos.length === 0 ? (
+                                {materias.length === 0 ? (
                                     <tr>
-                                        <td colSpan="8" style={{ padding: "2rem 0", textAlign: "center", color: "#aaa" }}>
-                                            No tienes salones aprobados este semestre
+                                        <td colSpan="5" style={{ padding: "2rem 0", textAlign: "center", color: "#aaa" }}>
+                                            No tienes materias matriculadas —{" "}
+                                            <span onClick={() => navigate("/matricula")} style={{ color: "#E8600A", cursor: "pointer" }}>ir a matrícula</span>
                                         </td>
                                     </tr>
                                 ) : (
-                                    cursos.filter(c => c.asignacion?.estado === "Aprobado").map((curso) => (
-                                        <tr key={curso.id} style={{ borderBottom: "1px solid #f9f9f9" }}>
-                                            <td style={{ padding: "12px 8px", color: "#1a1a1a", fontWeight: 500 }}>{curso.materia}</td>
-                                            <td style={{ padding: "12px 8px", color: "#555" }}>{curso.carrera}</td>
+                                    materias.map((m) => (
+                                        <tr key={m.id} style={{ borderBottom: "1px solid #f9f9f9" }}>
+                                            <td style={{ padding: "12px 8px", color: "#1a1a1a", fontWeight: 500 }}>{m.materia}</td>
+                                            <td style={{ padding: "12px 8px", color: "#555" }}>{m.docente}</td>
+                                            <td style={{ padding: "12px 8px", color: "#555" }}>{m.salonAsignado}</td>
                                             <td style={{ padding: "12px 8px", color: "#555" }}>
-                                                {curso.asignacion?.salon ?? <span style={{ color: "#ccc" }}>—</span>}
-                                            </td>
-                                            <td style={{ padding: "12px 8px", color: "#555" }}>
-                                                {curso.asignacion
-                                                    ? `${nombreDia(curso.asignacion.dia)} ${curso.asignacion.horaInicio} - ${curso.asignacion.horaFin}`
+                                                {m.horario
+                                                    ? `Día ${m.horario.dia} ${m.horario.horaInicio} - ${m.horario.horaFin}`
                                                     : <span style={{ color: "#ccc" }}>—</span>}
                                             </td>
-                                            <td style={{ padding: "12px 8px", color: "#555" }}>
-                                                {curso.asignacion?.recursos?.length > 0
-                                                    ? curso.asignacion.recursos.join(", ")
-                                                    : <span style={{ color: "#ccc" }}>Sin recursos</span>}
+                                            <td style={{ padding: "12px 8px" }}>
+                                                {cancelandoId === m.id ? (
+                                                    <div style={{ display: "flex", gap: "6px" }}>
+                                                        <button onClick={() => handleCancelar(m.id)}
+                                                            style={{ padding: "5px 10px", background: "#ffebee", color: "#c62828", border: "none", borderRadius: "6px", fontSize: "11px", cursor: "pointer" }}>
+                                                            Confirmar
+                                                        </button>
+                                                        <button onClick={() => setCancelAndoId(null)}
+                                                            style={{ padding: "5px 10px", background: "#f5f5f5", color: "#555", border: "none", borderRadius: "6px", fontSize: "11px", cursor: "pointer" }}>
+                                                            No
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button onClick={() => setCancelAndoId(m.id)}
+                                                        style={{ padding: "5px 12px", background: "#ffebee", color: "#c62828", border: "none", borderRadius: "6px", fontSize: "12px", cursor: "pointer" }}>
+                                                        Cancelar
+                                                    </button>
+                                                )}
                                             </td>
-                                            <td style={{ padding: "12px 8px", textAlign: "center" }}>
-                                                <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", color: "#1a73e8", fontWeight: 500 }}>
-                                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2h5M12 12a4 4 0 100-8 4 4 0 000 8z" />
-                                                    </svg>
-                                                    {curso.estudiantesMatriculados}
-                                                </span>
-                                            </td>
-                                            <td style={{ padding: "12px 8px", color: "#555", textAlign: "center" }}>{curso.cupoMaximo}</td>
-                                            <td style={{ padding: "12px 8px" }}>{estadoBadge(curso.asignacion?.estado)}</td>
                                         </tr>
                                     ))
                                 )}
@@ -235,4 +215,4 @@ function MisCursos() {
     );
 }
 
-export default MisCursos;
+export default MisMateriasEstudiante;

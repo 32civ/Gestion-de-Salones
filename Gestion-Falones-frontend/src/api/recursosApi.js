@@ -9,8 +9,25 @@ const getAuthHeaders = () => {
 };
 
 const handleResponse = async (res) => {
-  const data = await res.json();
-  if (!res.ok) throw new Error(typeof data === 'string' ? data : data.message || JSON.stringify(data));
+  const text = await res.text(); // ✅ leer siempre como texto primero
+
+  let data;
+  try {
+    data = JSON.parse(text); // intentar cambiar como JSON
+  } catch {
+    data = text; // si falla, usar el texto directamente
+  }
+
+  if (!res.ok) {
+    const mensaje =
+      typeof data === 'string'
+        ? data
+        : data.message || data.title || data.detail
+        || (data.errors ? Object.values(data.errors).flat().join(', ') : null)
+        || 'Ocurrió un error inesperado';
+    throw new Error(mensaje);
+  }
+
   return data;
 };
 

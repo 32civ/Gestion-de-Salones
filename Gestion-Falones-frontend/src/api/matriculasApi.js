@@ -31,12 +31,32 @@ const handleResponse = async (res) => {
   return data;
 };
 
-export const getMisCursos = async () => {
-  const res = await fetch(`${BASE_URL}/api/Cursos/mis-cursos`, { headers: getAuthHeaders() });
+export const getMisMaterias = async () => {
+  const res = await fetch(`${BASE_URL}/api/Matriculas/mis-materias`, {
+    headers: getAuthHeaders()
+  });
   return handleResponse(res);
 };
 
-export const getSalonDelCurso = async (id) => {
-  const res = await fetch(`${BASE_URL}/api/Cursos/${id}/salon`, { headers: getAuthHeaders() });
+export const getCursosDisponibles = async () => {
+  const res = await fetch(`${BASE_URL}/api/Matriculas/cursos-disponibles`, {
+    headers: getAuthHeaders()
+  });
+  return handleResponse(res);
+};
+
+export const matricularse = async (cursoId) => {
+  const res = await fetch(`${BASE_URL}/api/Matriculas?cursoId=${cursoId}`, {
+    method: 'POST',
+    headers: getAuthHeaders()
+  });
+  return handleResponse(res);
+};
+
+export const cancelarMatricula = async (id) => {
+  const res = await fetch(`${BASE_URL}/api/Matriculas/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
   return handleResponse(res);
 };

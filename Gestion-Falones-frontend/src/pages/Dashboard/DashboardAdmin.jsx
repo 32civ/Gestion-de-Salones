@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { nombreDia } from '../../helpers/Dias';
 
 function Dashboard() {
     const navigate = useNavigate();
@@ -86,6 +87,11 @@ function Dashboard() {
             label: "Carreras y Cursos", path: "/admin/carreras-cursos",
             icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         },
+        { 
+            label: 'Semestres',      path: '/semestres',
+            icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/><circle cx="12" cy="15" r="2" fill="currentColor"/></svg> 
+        },
+  
     ];
 
     const metricCards = [
@@ -211,7 +217,7 @@ function Dashboard() {
                                         <tr key={a.id} style={{ borderBottom: "1px solid #f9f9f9" }}>
                                             <td style={{ padding: "10px 0", color: "#333" }}>{a.curso}</td>
                                             <td style={{ padding: "10px 0", color: "#555" }}>{a.salon}</td>
-                                            <td style={{ padding: "10px 0", color: "#555" }}>Día {a.dia} {a.horaInicio}</td>
+                                            <td style={{ padding: "10px 0", color: "#555" }}>{nombreDia(a.dia)} {a.horaInicio}</td> 
                                             <td style={{ padding: "10px 0" }}>
                                                 <span style={{ ...getEstadoBadge(a.estado), fontSize: "11px", padding: "3px 8px", borderRadius: "20px" }}>
                                                     {a.estado}
@@ -229,9 +235,9 @@ function Dashboard() {
                         <h3 style={{ fontSize: "14px", fontWeight: 500, color: "#1a1a1a", margin: "0 0 1rem" }}>Accesos rápidos</h3>
                         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                             {[
-                                { label: "Nueva asignación automática", path: "/asignaciones/nueva", primary: true },
-                                { label: "Ver salones disponibles", path: "/salones" },
-                                { label: "Crear nuevo salón", path: "/salones/nuevo" },
+                                //{ label: "Nueva asignación automática", path: "/asignaciones/nueva", primary: true },
+                                { label: "Ver salones disponibles", path: "/salones", primary: true },
+                                //{ label: "Crear nuevo salón", path: "/salones/nuevo" },
                                 { label: "Gestionar horarios", path: "/horarios" },
                             ].map((item) => (
                                 <button key={item.path} onClick={() => navigate(item.path)}

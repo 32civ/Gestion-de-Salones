@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { nombreDia } from '../../helpers/Dias';
+
 
 function DashboardDocente() {
     const navigate = useNavigate();
@@ -198,7 +200,7 @@ function DashboardDocente() {
                                         <div>
                                             <p style={{ fontSize: "14px", fontWeight: 500, color: "#1a1a1a", margin: "0 0 4px" }}>{a.materia}</p>
                                             <p style={{ fontSize: "12px", color: "#888", margin: 0 }}>
-                                                {a.salon} · Día {a.dia} {a.horaInicio} - {a.horaFin} · Capacidad: {a.capacidad}
+                                                {a.salon} · {nombreDia(a.dia)} {a.horaInicio} - {a.horaFin} · Capacidad: {a.capacidad}
                                             </p>
                                             {a.recursos && a.recursos.length > 0 && (
                                                 <p style={{ fontSize: "12px", color: "#aaa", margin: "4px 0 0" }}>
@@ -270,7 +272,7 @@ function DashboardDocente() {
                                     <tr key={a.id} style={{ borderBottom: "1px solid #f9f9f9" }}>
                                         <td style={{ padding: "10px 0", color: "#333" }}>{a.materia}</td>
                                         <td style={{ padding: "10px 0", color: "#555" }}>{a.salon}</td>
-                                        <td style={{ padding: "10px 0", color: "#555" }}>Día {a.dia} {a.horaInicio} - {a.horaFin}</td>
+                                        <td style={{ padding: "10px 0", color: "#555" }}>{nombreDia(a.dia)} {a.horaInicio} - {a.horaFin}</td>
                                         <td style={{ padding: "10px 0", color: "#555" }}>{a.recursos?.join(", ") || "Sin recursos"}</td>
                                     </tr>
                                 ))

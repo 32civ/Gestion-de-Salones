@@ -8,16 +8,37 @@ const getAuthHeaders = () => {
   };
 };
 
+const handleResponse = async (res) => {
+  const text = await res.text();
+
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = text;
+  }
+
+  if (!res.ok) {
+    const mensaje =
+      typeof data === 'string'
+        ? data
+        : data.message || data.title || data.detail
+        || (data.errors ? Object.values(data.errors).flat().join(', ') : null)
+        || 'Ocurrió un error inesperado';
+    throw new Error(mensaje);
+  }
+
+  return data;
+};
+
 export const getHorarios = async () => {
   const res = await fetch(`${BASE_URL}/api/Horarios`, { headers: getAuthHeaders() });
-  if (!res.ok) throw new Error('Error al obtener Horarios');
-  return res.json();
+  return handleResponse(res);
 };
 
 export const getHorario = async (id) => {
   const res = await fetch(`${BASE_URL}/api/Horarios/${id}`, { headers: getAuthHeaders() });
-  if (!res.ok) throw new Error('Horario no encontrado');
-  return res.json();
+  return handleResponse(res);
 };
 
 export const crearHorario = async ({ diaSemana, horaInicio, horaFin }) => {
@@ -26,9 +47,7 @@ export const crearHorario = async ({ diaSemana, horaInicio, horaFin }) => {
     headers: getAuthHeaders(),
     body: JSON.stringify({ diaSemana, horaInicio, horaFin }),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(typeof data === 'string' ? data : JSON.stringify(data));
-  return data;
+  return handleResponse(res);
 };
 
 export const editarHorario = async (id, { diaSemana, horaInicio, horaFin }) => {
@@ -37,9 +56,7 @@ export const editarHorario = async (id, { diaSemana, horaInicio, horaFin }) => {
     headers: getAuthHeaders(),
     body: JSON.stringify({ id, diaSemana, horaInicio, horaFin }),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(typeof data === 'string' ? data : JSON.stringify(data));
-  return data;
+  return handleResponse(res);
 };
 
 export const eliminarHorario = async (id) => {
@@ -47,7 +64,5 @@ export const eliminarHorario = async (id) => {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(typeof data === 'string' ? data : JSON.stringify(data));
-  return data;
+  return handleResponse(res);
 };

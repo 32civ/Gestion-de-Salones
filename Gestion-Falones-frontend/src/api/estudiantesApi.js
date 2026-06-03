@@ -31,12 +31,18 @@ const handleResponse = async (res) => {
   return data;
 };
 
-export const getMisCursos = async () => {
-  const res = await fetch(`${BASE_URL}/api/Cursos/mis-cursos`, { headers: getAuthHeaders() });
+export const getMiPerfil = async () => {
+  const res = await fetch(`${BASE_URL}/api/Estudiantes/mi-perfil`, {
+    headers: getAuthHeaders()
+  });
   return handleResponse(res);
 };
 
-export const getSalonDelCurso = async (id) => {
-  const res = await fetch(`${BASE_URL}/api/Cursos/${id}/salon`, { headers: getAuthHeaders() });
+export const asignarCarrera = async (estudianteId, carreraId) => {
+  const res = await fetch(`${BASE_URL}/api/Estudiantes/${estudianteId}/carrera`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(carreraId)
+  });
   return handleResponse(res);
 };

@@ -1,6 +1,8 @@
 import { useState, useEffect, Fragment } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getMisAsignaciones, aceptarAsignacion, rechazarAsignacion, calificarSalon } from "../../api/aprobacionesApi";
+import { nombreDia } from "../../helpers/Dias";
+
 
 // ─── Paleta (consistente con el resto del proyecto) ────────────────────────
 const C = {
@@ -338,7 +340,7 @@ function MisAsignaciones() {
                         <div>
                           <p style={{ fontSize: 14, fontWeight: 700, color: C.gris900, margin: '0 0 3px' }}>{a.materia}</p>
                           <p style={{ fontSize: 12, color: C.gris600, margin: '0 0 2px' }}>🏫 {a.salon} · Capacidad: {a.capacidad}</p>
-                          <p style={{ fontSize: 12, color: C.gris600, margin: '0 0 2px' }}>🕐 Día {a.dia} {a.horaInicio} - {a.horaFin}</p>
+                          <p style={{ fontSize: 12, color: C.gris600, margin: '0 0 2px' }}>🕐 {nombreDia(a.dia)} {a.horaInicio} - {a.horaFin}</p>
                           {a.recursos?.length > 0 && (
                             <p style={{ fontSize: 12, color: C.gris400, margin: '2px 0 0' }}>🔧 {a.recursos.join(', ')}</p>
                           )}
@@ -394,7 +396,7 @@ function MisAsignaciones() {
                         <tr key={a.id} style={{ borderBottom: `1px solid ${C.gris100}` }}>
                           <td style={{ padding: '12px 8px', color: C.gris900, fontWeight: 600 }}>{a.materia}</td>
                           <td style={{ padding: '12px 8px', color: C.gris600 }}>{a.salon}</td>
-                          <td style={{ padding: '12px 8px', color: C.gris600 }}>Día {a.dia} {a.horaInicio} - {a.horaFin}</td>
+                          <td style={{ padding: '12px 8px', color: C.gris600 }}>{nombreDia(a.dia)} {a.horaInicio} - {a.horaFin}</td>
                           <td style={{ padding: '12px 8px', color: C.gris600 }}>{a.recursos?.join(', ') || <span style={{ color: C.gris200 }}>Sin recursos</span>}</td>
                           <td style={{ padding: '12px 8px' }}><BadgeEstado estado={a.estado} /></td>
                           <td style={{ padding: '12px 8px' }}>

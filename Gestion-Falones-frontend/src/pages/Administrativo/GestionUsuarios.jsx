@@ -2,8 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   getUsuarios, crearUsuario, editarUsuario,
-  cambiarPassword, activarUsuario, desactivarUsuario, eliminarUsuario,
+  cambiarPassword, activarUsuario, desactivarUsuario, eliminarUsuario, 
+  getCarreras,
 } from '../../api/usuariosApi';
+
+import { asignarCarrera } from '../../api/estudiantesApi';
 
 // ─── Diseño ────────────────────────────────────────────────────────────────
 const C = {
@@ -21,6 +24,7 @@ const sombraMedia  = '0 4px 12px rgba(0,0,0,0.09), 0 2px 4px rgba(0,0,0,0.06)';
 const sombraGrande = '0 12px 30px rgba(0,0,0,0.13), 0 4px 10px rgba(0,0,0,0.08)';
 
 const ROLES = ['Administrador', 'Administrativo', 'Docente', 'Estudiante'];
+
 
 const ROL_CONFIG = {
   Administrador:  { color: C.morado,   bg: C.moradoClaro,   icono: '👑' },
@@ -203,65 +207,172 @@ function ChipRol({ rol }) {
 
 // ─── Modal: Crear usuario ──────────────────────────────────────────────────
 function ModalCrear({ onGuardar, onCerrar, cargando }) {
+  const [paso,     setPaso]     = useState(1); // 1 = datos, 2 = carrera
   const [nombre,   setNombre]   = useState('');
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
   const [rol,      setRol]      = useState('');
+  const [carreraId,setCarreraId]= useState('');
+  const [carreras, setCarreras] = useState([]);
+  const [loadingCar, setLoadingCar] = useState(false);
   const [errores,  setErrores]  = useState({});
 
-  const validar = () => {
+  const validarPaso1 = () => {
     const e = {};
-    if (!nombre.trim())       e.nombre   = 'El nombre es obligatorio';
-    if (!email.trim())        e.email    = 'El email es obligatorio';
+    if (!nombre.trim())           e.nombre   = 'El nombre es obligatorio';
+    if (!email.trim())            e.email    = 'El email es obligatorio';
     else if (!/\S+@\S+\.\S+/.test(email)) e.email = 'Email inválido';
-    if (!password)            e.password = 'La contraseña es obligatoria';
+    if (!password)                e.password = 'La contraseña es obligatoria';
     else if (password.length < 6) e.password = 'Mínimo 6 caracteres';
-    if (!rol)                 e.rol      = 'Selecciona un rol';
+    if (!rol)                     e.rol      = 'Selecciona un rol';
     setErrores(e);
     return Object.keys(e).length === 0;
   };
 
-  return (
-    <Modal titulo="Nuevo usuario" subtitulo="Completa los datos para crear la cuenta" onClose={onCerrar}>
-      <Campo label="Nombre completo" value={nombre} onChange={setNombre} placeholder="Ej: Pepito Pérez" error={errores.nombre} />
-      <Campo label="Email" tipo="email" value={email} onChange={setEmail} placeholder="correo@algo.edu" error={errores.email} />
-      <Campo label="Contraseña" tipo="password" value={password} onChange={setPassword} placeholder="Mínimo 6 caracteres" error={errores.password} />
+  const irAPaso2 = () => {
+    if (!validarPaso1()) return;
+    if (rol === 'Estudiante') {
+      setLoadingCar(true);
+      getCarreras()
+        .then(data => setCarreras(data))
+        .catch(() => {})
+        .finally(() => setLoadingCar(false));
+      setPaso(2);
+    } else {
+      onGuardar({ nombre, email, password, rol });
+    }
+  };
 
-      {/* Selector de rol */}
-      <div style={{ marginBottom: 20 }}>
-        <label style={{
-          display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700,
-          color: C.gris600, textTransform: 'uppercase', letterSpacing: '0.06em',
-          fontFamily: '"DM Sans", sans-serif',
-        }}>Rol</label>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {ROLES.map(r => {
-            const cfg = ROL_CONFIG[r];
-            const sel = rol === r;
+  return (
+    <Modal
+      titulo={paso === 1 ? 'Nuevo usuario' : 'Asignar carrera'}
+      subtitulo={paso === 1
+        ? 'Completa los datos para crear la cuenta'
+        : `Selecciona la carrera para ${nombre}`}
+      onClose={onCerrar}
+    >
+      {/* ── Indicador de pasos (solo si es Estudiante) ── */}
+      {rol === 'Estudiante' && (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 20, alignItems: 'center' }}>
+          {['Datos', 'Carrera'].map((label, i) => {
+            const activo = paso === i + 1;
+            const completado = paso > i + 1;
             return (
-              <button key={r} onClick={() => setRol(r)} style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '7px 14px', borderRadius: 9, cursor: 'pointer',
-                border: `1.5px solid ${sel ? cfg.color : C.gris200}`,
-                background: sel ? cfg.bg : C.blanco,
-                color: sel ? cfg.color : C.gris600,
-                fontSize: 13, fontWeight: 700, fontFamily: '"DM Sans", sans-serif',
-                transition: 'all 0.14s',
-              }}>
-                {cfg.icono} {r}
-              </button>
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{
+                  width: 24, height: 24, borderRadius: '50%',
+                  background: completado ? C.verde : activo ? C.naranja : C.gris200,
+                  color: completado || activo ? C.blanco : C.gris400,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 11, fontWeight: 800, fontFamily: '"DM Sans", sans-serif',
+                  flexShrink: 0,
+                }}>
+                  {completado ? '✓' : i + 1}
+                </div>
+                <span style={{
+                  fontSize: 12, fontWeight: activo ? 700 : 400,
+                  color: activo ? C.naranja : C.gris400,
+                  fontFamily: '"DM Sans", sans-serif',
+                }}>{label}</span>
+                {i < 1 && <div style={{ width: 24, height: 1, background: C.gris200 }} />}
+              </div>
             );
           })}
         </div>
-        {errores.rol && <p style={{ margin: '6px 0 0', fontSize: 11, color: C.rojo, fontFamily: '"DM Sans", sans-serif' }}>{errores.rol}</p>}
-      </div>
+      )}
 
-      <div style={{ display: 'flex', gap: 10 }}>
-        <Btn variante="neutro" onClick={onCerrar} full>Cancelar</Btn>
-        <Btn variante="primario" disabled={cargando} full
-          onClick={() => { if (validar()) onGuardar({ nombre, email, password, rol }); }}
-        >{cargando ? 'Creando…' : '＋ Crear usuario'}</Btn>
-      </div>
+      {/* ── Paso 1: Datos del usuario ── */}
+      {paso === 1 && (
+        <>
+          <Campo label="Nombre completo" value={nombre} onChange={setNombre} placeholder="Ej: Pepito Pérez" error={errores.nombre} />
+          <Campo label="Email" value={email} onChange={setEmail} placeholder="correo@algo.edu" error={errores.email} />
+          <Campo label="Contraseña" tipo="password" value={password} onChange={setPassword} placeholder="Mínimo 6 caracteres" error={errores.password} />
+
+          <div style={{ marginBottom: 20 }}>
+            <label style={{
+              display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700,
+              color: C.gris600, textTransform: 'uppercase', letterSpacing: '0.06em',
+              fontFamily: '"DM Sans", sans-serif',
+            }}>Rol</label>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {ROLES.map(r => {
+                const cfg = ROL_CONFIG[r];
+                const sel = rol === r;
+                return (
+                  <button key={r} onClick={() => setRol(r)} style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '7px 14px', borderRadius: 9, cursor: 'pointer',
+                    border: `1.5px solid ${sel ? cfg.color : C.gris200}`,
+                    background: sel ? cfg.bg : C.blanco,
+                    color: sel ? cfg.color : C.gris600,
+                    fontSize: 13, fontWeight: 700, fontFamily: '"DM Sans", sans-serif',
+                    transition: 'all 0.14s',
+                  }}>
+                    {cfg.icono} {r}
+                  </button>
+                );
+              })}
+            </div>
+            {errores.rol && <p style={{ margin: '6px 0 0', fontSize: 11, color: C.rojo, fontFamily: '"DM Sans", sans-serif' }}>{errores.rol}</p>}
+          </div>
+
+          <div style={{ display: 'flex', gap: 10 }}>
+            <Btn variante="neutro" onClick={onCerrar} full>Cancelar</Btn>
+            <Btn variante="primario" disabled={cargando} full onClick={irAPaso2}>
+              {rol === 'Estudiante' ? 'Siguiente →' : (cargando ? 'Creando…' : '＋ Crear usuario')}
+            </Btn>
+          </div>
+        </>
+      )}
+
+      {/* ── Paso 2: Asignar carrera (solo Estudiante) ── */}
+      {paso === 2 && (
+        <>
+          {loadingCar ? (
+            <p style={{ textAlign: 'center', color: C.gris400, fontSize: 13, padding: '1rem 0' }}>
+              Cargando carreras...
+            </p>
+          ) : (
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 260, overflowY: 'auto' }}>
+                {carreras.map(c => (
+                  <button key={c.id} onClick={() => setCarreraId(c.id)} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '10px 14px', borderRadius: 9, cursor: 'pointer',
+                    border: `1.5px solid ${carreraId === c.id ? C.naranja : C.gris200}`,
+                    background: carreraId === c.id ? C.naranjaClaro : C.blanco,
+                    color: carreraId === c.id ? C.naranja : C.gris600,
+                    fontSize: 13, fontWeight: 600, fontFamily: '"DM Sans", sans-serif',
+                    transition: 'all 0.14s', textAlign: 'left',
+                  }}>
+                    <span>🎓 {c.nombre}</span>
+                    {carreraId === c.id && <span style={{ fontSize: 16 }}>✓</span>}
+                  </button>
+                ))}
+              </div>
+
+              {/* Aviso opcional — puede saltarse */}
+              <p style={{ margin: '10px 0 0', fontSize: 11, color: C.gris400, fontFamily: '"DM Sans", sans-serif' }}>
+                Puedes omitir este paso y asignar la carrera después desde la tarjeta del usuario.
+              </p>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: 10 }}>
+            <Btn variante="neutro" onClick={() => setPaso(1)} full>← Volver</Btn>
+            <Btn variante="neutro" onClick={() => onGuardar({ nombre, email, password, rol })} full>
+              Omitir
+            </Btn>
+            <Btn
+              variante="primario" full
+              disabled={cargando || !carreraId}
+              onClick={() => onGuardar({ nombre, email, password, rol, carreraId })}
+            >
+              {cargando ? 'Creando…' : '＋ Crear con carrera'}
+            </Btn>
+          </div>
+        </>
+      )}
     </Modal>
   );
 }
@@ -359,7 +470,7 @@ function ModalEliminar({ usuario, onConfirmar, onCerrar, cargando }) {
 }
 
 // ─── Modal: Detalle de usuario ─────────────────────────────────────────────
-function ModalDetalle({ usuario, onCerrar, onEditar, onPassword, onActivar, onDesactivar, onEliminar, rolActual }) {
+function ModalDetalle({ usuario, onCerrar, onEditar, onPassword, onActivar, onDesactivar, onEliminar, rolActual, onCarrera }) {
   const esAdmin = rolActual === 'Administrador';
   const puedeEliminar = !usuario.roles?.includes('Administrador');
 
@@ -414,6 +525,12 @@ function ModalDetalle({ usuario, onCerrar, onEditar, onPassword, onActivar, onDe
       {/* Acciones */}
       <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div style={{ display: 'flex', gap: 8 }}>
+
+          {(usuario.roles || []).includes('Estudiante') && (
+          <Btn variante="secundario" full onClick={() => { onCerrar(); onCarrera(usuario); }}>
+            🎓 Asignar carrera
+          </Btn>)}
+
           <Btn variante="secundario" full onClick={() => { onCerrar(); onEditar(usuario); }}>✏️ Editar datos</Btn>
           <Btn variante="neutro" full onClick={() => { onCerrar(); onPassword(usuario); }}>🔑 Contraseña</Btn>
         </div>
@@ -428,6 +545,84 @@ function ModalDetalle({ usuario, onCerrar, onEditar, onPassword, onActivar, onDe
           )}
         </div>
         <Btn variante="neutro" full onClick={onCerrar}>Cerrar</Btn>
+      </div>
+    </Modal>
+  );
+}
+
+// ─── Modal: Asignar Carrera ──────────────────────────────────────────────────
+
+function ModalAsignarCarrera({ usuario, onGuardar, onCerrar, cargando }) {
+  const [carreras,   setCarreras]   = useState([]);
+  const [carreraId,  setCarreraId]  = useState('');
+  const [loadingCar, setLoadingCar] = useState(true);
+  const [error,      setError]      = useState(null);
+
+  useEffect(() => {
+    getCarreras()
+      .then(data => setCarreras(data))
+      .catch(e => setError(e.message))
+      .finally(() => setLoadingCar(false));
+  }, []);
+
+  return (
+    <Modal
+      titulo="Asignar carrera"
+      subtitulo={`Asignando carrera a ${usuario.nombre}`}
+      onClose={onCerrar}
+    >
+      {loadingCar && (
+        <p style={{ textAlign: 'center', color: C.gris400, fontSize: 13, padding: '1rem 0' }}>
+          Cargando carreras...
+        </p>
+      )}
+
+      {error && (
+        <p style={{ color: C.rojo, fontSize: 13, marginBottom: 16 }}>{error}</p>
+      )}
+
+      {!loadingCar && !error && (
+        <div style={{ marginBottom: 20 }}>
+          <label style={{
+            display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700,
+            color: C.gris600, textTransform: 'uppercase', letterSpacing: '0.06em',
+            fontFamily: '"DM Sans", sans-serif',
+          }}>Carrera</label>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 260, overflowY: 'auto' }}>
+            {carreras.map(c => (
+              <button key={c.id} onClick={() => setCarreraId(c.id)} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '10px 14px', borderRadius: 9, cursor: 'pointer',
+                border: `1.5px solid ${carreraId === c.id ? C.naranja : C.gris200}`,
+                background: carreraId === c.id ? C.naranjaClaro : C.blanco,
+                color: carreraId === c.id ? C.naranja : C.gris600,
+                fontSize: 13, fontWeight: 600, fontFamily: '"DM Sans", sans-serif',
+                transition: 'all 0.14s', textAlign: 'left',
+              }}>
+                <span>🎓 {c.nombre}</span>
+                {carreraId === c.id && <span style={{ fontSize: 16 }}>✓</span>}
+              </button>
+            ))}
+          </div>
+
+          {!carreraId && (
+            <p style={{ margin: '6px 0 0', fontSize: 11, color: C.rojo, fontFamily: '"DM Sans", sans-serif' }}>
+              Selecciona una carrera
+            </p>
+          )}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 10 }}>
+        <Btn variante="neutro" onClick={onCerrar} full>Cancelar</Btn>
+        <Btn
+          variante="primario" full
+          disabled={cargando || !carreraId}
+          onClick={() => carreraId && onGuardar(carreraId)}
+        >
+          {cargando ? 'Asignando…' : '🎓 Asignar carrera'}
+        </Btn>
       </div>
     </Modal>
   );
@@ -448,7 +643,7 @@ function Skeleton() {
 }
 
 // ─── Tarjeta de usuario ────────────────────────────────────────────────────
-function TarjetaUsuario({ usuario, onVer, onEditar, onPassword, onActivar, onDesactivar, onEliminar }) {
+function TarjetaUsuario({ usuario, onVer, onEditar, onPassword, onActivar, onDesactivar, onEliminar, onCarrera }) {
   const [hover, setHover] = useState(false);
   const puedeEliminar = !usuario.roles?.includes('Administrador');
 
@@ -488,9 +683,25 @@ function TarjetaUsuario({ usuario, onVer, onEditar, onPassword, onActivar, onDes
         {(usuario.roles || []).map(r => <ChipRol key={r} rol={r} />)}
       </div>
 
+      {/* Carrera — solo si es estudiante */}
+      {(usuario.roles || []).includes('Estudiante') && (
+        <p style={{
+          margin: 0, fontSize: 11, color: C.gris400,
+          fontFamily: '"DM Sans", sans-serif',
+          display: 'flex', alignItems: 'center', gap: 4
+          }}>
+          🎓 {usuario.carrera ?? 'Sin carrera asignada'}
+        </p>
+      )}
+
       {/* Acciones */}
       <div style={{ borderTop: `1px solid ${C.gris200}`, paddingTop: 10, display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+
         <Btn variante="neutro" small onClick={() => onVer(usuario)}>👁</Btn>
+
+        {(usuario.roles || []).includes('Estudiante') && (
+        <Btn variante="neutro" small onClick={() => onCarrera(usuario)}>🎓</Btn>)}
+
         <Btn variante="secundario" small onClick={() => onEditar(usuario)}>✏️</Btn>
         <Btn variante="neutro" small onClick={() => onPassword(usuario)}>🔑</Btn>
         {usuario.activo
@@ -510,6 +721,7 @@ export default function GestionUsuarios() {
   const navigate = useNavigate();
 
   const [usuarios,     setUsuarios]     = useState([]);
+  const [usuarioCarrera,  setUsuarioCarrera]  = useState(null);
   const [cargando,     setCargando]     = useState(true);
   const [busqueda,     setBusqueda]     = useState('');
   const [filtroRol,    setFiltroRol]    = useState('Todos');
@@ -553,16 +765,58 @@ export default function GestionUsuarios() {
   });
 
   // ── Handlers ──
-  const handleCrear = async (dto) => {
-    setGuardando(true);
-    try {
-      await crearUsuario(dto);
-      mostrarToast('Usuario creado correctamente ✓', 'exito');
-      setModalCrear(false);
-      cargarUsuarios();
-    } catch (e) { mostrarToast(e.message, 'error'); }
-    finally { setGuardando(false); }
+
+  const handleAsignarCarrera = async (carreraId) => {
+  setGuardando(true);
+  try {
+    // Buscar el estudianteId a partir del usuarioId
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL || 'https://localhost:7138'}/api/Estudiantes`,
+      { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+    );
+    const estudiantes = await res.json();
+    const estudiante = estudiantes.find(e => e.usuarioId === usuarioCarrera.id || e.nombre === usuarioCarrera.nombre);
+
+    if (!estudiante) throw new Error("No se encontró el perfil de estudiante");
+
+    await asignarCarrera(estudiante.id, carreraId);
+    mostrarToast('Carrera asignada correctamente ✓', 'exito');
+    setUsuarioCarrera(null);
+  } catch (e) {
+    mostrarToast(e.message, 'error');
+  } finally {
+    setGuardando(false);
+  }
   };
+
+  const handleCrear = async (dto) => {
+  setGuardando(true);
+  try {
+    const resultado = await crearUsuario(dto);
+    
+    // Si es estudiante y viene carreraId, asignarla automáticamente
+    if (dto.rol === 'Estudiante' && dto.carreraId) {
+      // Recargar para obtener el estudianteId recién creado
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL || 'https://localhost:7138'}/api/Estudiantes`,
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      );
+      const estudiantes = await res.json();
+      const estudiante = estudiantes.find(e => e.nombre === dto.nombre);
+      if (estudiante) {
+        await asignarCarrera(estudiante.id, dto.carreraId);
+      }
+    }
+
+    mostrarToast('Usuario creado correctamente ✓', 'exito');
+    setModalCrear(false);
+    cargarUsuarios();
+  } catch (e) {
+    mostrarToast(e.message, 'error');
+  } finally {
+    setGuardando(false);
+  }
+};
 
   const handleEditar = async (dto) => {
     setGuardando(true);
@@ -775,6 +1029,7 @@ export default function GestionUsuarios() {
                   onActivar={setUsuarioActivar}
                   onDesactivar={setUsuarioDesact}
                   onEliminar={setUsuarioEliminar}
+                  onCarrera={setUsuarioCarrera}
                 />
               ))}
             </div>
@@ -784,10 +1039,11 @@ export default function GestionUsuarios() {
 
       {/* ── Modales ── */}
       {modalCrear    && <ModalCrear onGuardar={handleCrear} onCerrar={() => setModalCrear(false)} cargando={guardando} />}
-      {usuarioVer    && <ModalDetalle usuario={usuarioVer} rolActual={rolActual} onCerrar={() => setUsuarioVer(null)} onEditar={setUsuarioEditar} onPassword={setUsuarioPwd} onActivar={setUsuarioActivar} onDesactivar={setUsuarioDesact} onEliminar={setUsuarioEliminar} />}
+      {usuarioVer    && <ModalDetalle usuario={usuarioVer} rolActual={rolActual} onCerrar={() => setUsuarioVer(null)} onEditar={setUsuarioEditar} onPassword={setUsuarioPwd} onActivar={setUsuarioActivar} onDesactivar={setUsuarioDesact} onEliminar={setUsuarioEliminar} onCarrera={setUsuarioCarrera} />}
       {usuarioEditar && <ModalEditar usuario={usuarioEditar} onGuardar={handleEditar} onCerrar={() => setUsuarioEditar(null)} cargando={guardando} />}
       {usuarioPwd    && <ModalPassword usuario={usuarioPwd} onGuardar={handlePassword} onCerrar={() => setUsuarioPwd(null)} cargando={guardando} />}
       {usuarioEliminar && <ModalEliminar usuario={usuarioEliminar} onConfirmar={handleEliminar} onCerrar={() => setUsuarioEliminar(null)} cargando={guardando} />}
+      {usuarioCarrera && <ModalAsignarCarrera usuario={usuarioCarrera} onGuardar={handleAsignarCarrera} onCerrar={() => setUsuarioCarrera(null)} cargando={guardando} /> }
 
       {/* Confirmaciones activar/desactivar inline */}
       {usuarioActivar && (
