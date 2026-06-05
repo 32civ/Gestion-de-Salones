@@ -10,7 +10,7 @@ import GestionRecursos from "../pages/Administrativo/GestionRecursos";
 import MisCursos from "../pages/Docente/MisCursos";
 import MisAsignaciones from "../pages/Docente/MisAsignaciones";
 import Reportes from "../pages/Administrativo/Reportes";
-import Dashboardestudiante from "../pages/Dashboard/DashboardEstudiante";
+import DashboardEstudiante from "../pages/Dashboard/DashboardEstudiante";
 import MisMateriasEstudiante from "../pages/Estudiante/MisMateriasEstudiante";
 import Matricula from "../pages/Estudiante/Matricula";
 import GestionSemestres from "../pages/Asignaciones/GestionSemestres";
