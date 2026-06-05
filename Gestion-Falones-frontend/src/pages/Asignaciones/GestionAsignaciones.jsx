@@ -5,6 +5,7 @@ import {
   asignacionAutomatica, asignacionManual,
   getCursos, getSalones, getHorarios, getRecursos,
 } from '../../api/asignacionesApi';
+import { getSemestreActivo } from '../../api/semestresApi';
 
 // Aprobaciones (para leer comentarios de rechazo)
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:7138';
@@ -653,6 +654,7 @@ export default function GestionAsignaciones() {
   const [salones,       setSalones]       = useState([]);
   const [horarios,      setHorarios]      = useState([]);
   const [recursos,      setRecursos]      = useState([]);
+  const [semestre, setSemestre] = useState('');//Nuevo
 
   const [cargando,      setCargando]      = useState(true);
   const [filtroEstado,  setFiltroEstado]  = useState('Todos');
@@ -669,31 +671,45 @@ export default function GestionAsignaciones() {
   const mostrarToast = useCallback((msg, tipo = 'info') => setToast({ msg, tipo }), []);
 
   const cargarTodo = useCallback(async () => {
-    setCargando(true);
-    try {
-      const [a, c, s, h, r, ap] = await Promise.allSettled([
-        getAsignaciones(), getCursos(), getSalones(), getHorarios(), getRecursos(), getAprobaciones(),
-      ]);
-      // Cruzar comentarios de rechazo con las asignaciones
-      const asigs = a.status === 'fulfilled' ? a.value : [];
-      const aprobaciones = ap.status === 'fulfilled' ? ap.value : [];
-      // Mapa: asignacionId -> comentario de rechazo
-      const mapaComentarios = {};
-      aprobaciones.forEach(ap => {
-        if (!ap.aprobado && ap.asignacionId) mapaComentarios[ap.asignacionId] = ap.comentario;
-      });
-      const asigConComentario = asigs.map(asig => ({
-        ...asig,
-        comentarioRechazo: asig.estado === 'Rechazado' ? (mapaComentarios[asig.id] || '') : '',
-      }));
-      setAsignaciones(asigConComentario);
-      if (c.status === 'fulfilled') setCursos(c.value);
-      if (s.status === 'fulfilled') setSalones(s.value);
-      if (h.status === 'fulfilled') setHorarios(h.value);
-      if (r.status === 'fulfilled') setRecursos(r.value);
-    } catch (e) {
-      mostrarToast(e.message, 'error');
-    } finally { setCargando(false); }
+  setCargando(true);
+  try {
+    const [a, c, s, h, r, ap, sem] = await Promise.allSettled([
+      getAsignaciones(),
+      getCursos(),
+      getSalones(),
+      getHorarios(),
+      getRecursos(),
+      getAprobaciones(),
+      getSemestreActivo(), // ← nuevo
+    ]);
+
+    // Semestre activo
+    if (sem.status === 'fulfilled') setSemestre(sem.value.nombre);
+
+    const asigs       = a.status  === 'fulfilled' ? a.value  : [];
+    const aprobaciones = ap.status === 'fulfilled' ? ap.value : [];
+
+    const mapaComentarios = {};
+    aprobaciones.forEach(ap => {
+      if (!ap.aprobado && ap.asignacionId)
+        mapaComentarios[ap.asignacionId] = ap.comentario;
+    });
+
+    const asigConComentario = asigs.map(asig => ({
+      ...asig,
+      comentarioRechazo: asig.estado === 'Rechazado'
+        ? (mapaComentarios[asig.id] || '') : '',
+    }));
+
+    setAsignaciones(asigConComentario);
+    if (c.status === 'fulfilled') setCursos(c.value);
+    if (s.status === 'fulfilled') setSalones(s.value);
+    if (h.status === 'fulfilled') setHorarios(h.value);
+    if (r.status === 'fulfilled') setRecursos(r.value);
+
+  } catch (e) {
+    mostrarToast(e.message, 'error');
+  } finally { setCargando(false); }
   }, [mostrarToast]);
 
   useEffect(() => { cargarTodo(); }, [cargarTodo]);
@@ -805,6 +821,17 @@ export default function GestionAsignaciones() {
                 <p style={{ margin: 0, fontSize: 13, color: C.gris400 }}>
                   {asignaciones.length} asignación{asignaciones.length !== 1 ? 'es' : ''} en total
                 </p>
+                {semestre && (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    background: C.naranjaClaro, border: `1px solid ${C.naranja}40`,
+                    borderRadius: 20, padding: '3px 12px', marginTop: 4,
+                    fontSize: 12, color: C.naranja, fontWeight: 700,
+                    fontFamily: '"DM Sans", sans-serif',
+                  }}>
+                    📅 {semestre}
+                  </span>
+                )}
               </div>
             </div>
 

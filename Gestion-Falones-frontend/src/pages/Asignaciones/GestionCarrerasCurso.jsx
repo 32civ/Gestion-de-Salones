@@ -178,6 +178,84 @@ function Select({ label, value, onChange, options, placeholder, error, disabled 
   );
 }
 
+// ─── Select con búsqueda ───────────────────────────────────────────────────
+function SelectConBusqueda({ label, value, onChange, options, placeholder, error, disabled }) {
+  const [busq, setBusq] = useState('');
+  const filtradas = options.filter(o =>
+    o.label.toLowerCase().includes(busq.toLowerCase())
+  );
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      {label && <label style={{ display: 'block', marginBottom: 6, fontSize: 12,
+        fontWeight: 700, color: C.gris600, textTransform: 'uppercase',
+        letterSpacing: '0.06em', fontFamily: '"DM Sans", sans-serif' }}>{label}</label>}
+
+      {/* Buscador */}
+      <input
+        value={busq}
+        onChange={e => setBusq(e.target.value)}
+        placeholder={disabled ? 'Selecciona una carrera primero…' : 'Buscar materia…'}
+        disabled={disabled}
+        style={{
+          width: '100%', padding: '9px 13px', borderRadius: '8px 8px 0 0',
+          border: `1.5px solid ${error ? C.rojo : C.gris200}`,
+          borderBottom: 'none', fontSize: 13,
+          fontFamily: '"DM Sans", sans-serif', color: C.gris900,
+          background: disabled ? C.gris100 : C.blanco,
+          outline: 'none', boxSizing: 'border-box',
+        }}
+        onFocus={e => { e.target.style.borderColor = C.naranja; }}
+        onBlur={e => { e.target.style.borderColor = error ? C.rojo : C.gris200; }}
+      />
+
+      {/* Lista */}
+      <div style={{
+        border: `1.5px solid ${error ? C.rojo : C.gris200}`,
+        borderRadius: '0 0 8px 8px', maxHeight: 180,
+        overflowY: 'auto', background: disabled ? C.gris100 : C.blanco,
+      }}>
+        {disabled || filtradas.length === 0 ? (
+          <p style={{ margin: 0, padding: '10px 13px', fontSize: 13,
+            color: C.gris400, fontFamily: '"DM Sans", sans-serif' }}>
+            {disabled ? '' : 'Sin resultados'}
+          </p>
+        ) : (
+          filtradas.map(o => (
+            <div key={o.value}
+              onClick={() => { onChange(String(o.value)); setBusq(''); }}
+              style={{
+                padding: '9px 13px', fontSize: 14, cursor: 'pointer',
+                fontFamily: '"DM Sans", sans-serif',
+                background: String(o.value) === String(value) ? C.naranjaClaro : 'transparent',
+                color: String(o.value) === String(value) ? C.naranja : C.gris900,
+                fontWeight: String(o.value) === String(value) ? 700 : 400,
+                borderBottom: `1px solid ${C.gris100}`,
+                transition: 'background 0.12s',
+              }}
+              onMouseEnter={e => { if (String(o.value) !== String(value)) e.target.style.background = C.gris50; }}
+              onMouseLeave={e => { if (String(o.value) !== String(value)) e.target.style.background = 'transparent'; }}
+            >
+              {o.label}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Valor seleccionado visible */}
+      {value && (
+        <p style={{ margin: '4px 0 0', fontSize: 11, color: C.naranja,
+          fontFamily: '"DM Sans", sans-serif', fontWeight: 600 }}>
+          ✓ {options.find(o => String(o.value) === String(value))?.label}
+        </p>
+      )}
+
+      {error && <p style={{ margin: '4px 0 0', fontSize: 11, color: C.rojo,
+        fontFamily: '"DM Sans", sans-serif' }}>{error}</p>}
+    </div>
+  );
+}
+
 // ─── Skeleton ──────────────────────────────────────────────────────────────
 function Skeleton() {
   return (
@@ -416,14 +494,14 @@ function TabMaterias({ puedeEditar, mostrarToast }) {
   const [errores, setErrores] = useState({});
 
   const cargar = useCallback(async () => {
-    setCargando(true);
-    try {
-      const [m, c] = await Promise.allSettled([getMaterias(), getCarreras()]);
-      if (m.status === 'fulfilled') setMaterias(m.value);
-      if (c.status === 'fulfilled') setCarreras(c.value);
-      if (m.status === 'rejected') mostrarToast(m.reason.message, 'error');
-    } finally { setCargando(false); }
-  }, [mostrarToast]);
+  setCargando(true);
+  try {
+    const [m, c] = await Promise.allSettled([getMaterias(), getCarreras()]);
+    if (m.status === 'fulfilled') setMaterias(m.value);
+    if (c.status === 'fulfilled') setCarreras(c.value);
+    if (m.status === 'rejected') mostrarToast(m.reason.message, 'error');
+  } finally { setCargando(false); }
+}, [mostrarToast]);
 
   useEffect(() => { cargar(); }, [cargar]);
 
@@ -636,25 +714,29 @@ function TabCursos({ puedeEditar, mostrarToast }) {
   const [cursos, setCursos] = useState([]);
   const [materias, setMaterias] = useState([]);
   const [docentes, setDocentes] = useState([]);
+  const [carreras, setCarreras] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [busqueda, setBusqueda] = useState('');
   const [modal, setModal] = useState(null);
   const [seleccionado, setSeleccionado] = useState(null);
-  const [form, setForm] = useState({ materiaId: '', docenteId: '', cupoMaximo: '' });
+  const [form, setForm] = useState({ carreraId: '', materiaId: '', docenteId: '', cupoMaximo: '' });
   const [errores, setErrores] = useState({});
 
   const cargar = useCallback(async () => {
-    setCargando(true);
-    try {
-      const [c, m, d] = await Promise.allSettled([getCursos(), getMaterias(), getDocentes()]);
-      if (c.status === 'fulfilled') setCursos(c.value);
-      if (m.status === 'fulfilled') setMaterias(m.value);
-      if (d.status === 'fulfilled') setDocentes(d.value);
-      const err = [c, m, d].find(p => p.status === 'rejected');
-      if (err) mostrarToast(err.reason.message, 'error');
-    } finally { setCargando(false); }
-  }, [mostrarToast]);
+  setCargando(true);
+  try {
+    const [c, m, d, carr] = await Promise.allSettled([
+      getCursos(), getMaterias(), getDocentes(), getCarreras()
+    ]);
+    if (c.status === 'fulfilled') setCursos(c.value);
+    if (m.status === 'fulfilled') setMaterias(m.value);
+    if (d.status === 'fulfilled') setDocentes(d.value);
+    if (carr.status === 'fulfilled') setCarreras(carr.value);
+    const err = [c, m, d, carr].find(p => p.status === 'rejected');
+    if (err) mostrarToast(err.reason.message, 'error');
+  } finally { setCargando(false); }
+}, [mostrarToast]);
 
   useEffect(() => { cargar(); }, [cargar]);
 
@@ -663,12 +745,18 @@ function TabCursos({ puedeEditar, mostrarToast }) {
     c.docente?.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  const abrirCrear = () => { setForm({ materiaId: '', docenteId: '', cupoMaximo: '' }); setErrores({}); setModal('crear'); };
+  const abrirCrear = () => { setForm({ carreraId: '', materiaId: '', docenteId: '', cupoMaximo: '' }); setErrores({}); setModal('crear'); };
   const abrirEditar = (c) => {
     const materia = materias.find(m => m.nombre === c.materia);
+
+    const carreraId = materia?.carreraId? String(materia.carreraId): String(carreras.find(car => car.nombre === materia?.carrera)?.id || '');
+
+    
+
     const docente = docentes.find(d => d.nombre === c.docente || `${d.nombre}` === c.docente);
     setSeleccionado(c);
     setForm({
+      carreraId,
       materiaId: materia ? String(materia.id) : '',
       docenteId: docente ? String(docente.id) : '',
       cupoMaximo: String(c.cupoMaximo),
@@ -729,6 +817,13 @@ function TabCursos({ puedeEditar, mostrarToast }) {
     'Rechazado':   { color: C.rojo, bg: C.rojoClaro, icono: '❌' },
   };
 
+  const materiasFiltradas = form.carreraId
+    ? materias.filter(m => {
+        const carrera = carreras.find(c => String(c.id) === form.carreraId);
+        return m.carrera === carrera?.nombre || String(m.carreraId) === form.carreraId;
+    })
+  : [];
+
   return (
     <div>
       {/* Toolbar */}
@@ -785,17 +880,46 @@ function TabCursos({ puedeEditar, mostrarToast }) {
           subtitulo={modal === 'editar' ? `Modificando: ${seleccionado?.materia}` : undefined}
           onClose={() => setModal(null)}
         >
-          <Select label="Materia" value={form.materiaId}
+          {/* NUEVO: filtro por carrera */}
+          <Select
+            label="Carrera"
+            value={form.carreraId}
+            onChange={v => setForm(f => ({ ...f, carreraId: v, materiaId: '' }))}
+            placeholder="Primero selecciona una carrera…"
+            error={errores.carreraId}
+            options={carreras.map(c => ({ value: c.id, label: c.nombre }))}
+          />
+
+          {/* Materia ahora filtrada */}
+          <SelectConBusqueda
+            label="Materia"
+            value={form.materiaId}
             onChange={v => setForm(f => ({ ...f, materiaId: v }))}
-            placeholder="Seleccionar materia…" error={errores.materiaId}
-            options={materias.map(m => ({ value: m.id, label: `${m.nombre} — ${m.carrera}` }))} />
-          <Select label="Docente" value={form.docenteId}
+            placeholder={form.carreraId ? 'Seleccionar materia…' : 'Selecciona una carrera primero…'}
+            error={errores.materiaId}
+            disabled={!form.carreraId}
+            options={materiasFiltradas.map(m => ({ value: m.id, label: m.nombre }))}
+          />
+
+          {/* <Select label="Docente" value={form.docenteId}
             onChange={v => setForm(f => ({ ...f, docenteId: v }))}
             placeholder="Seleccionar docente…" error={errores.docenteId}
-            options={docentes.map(d => ({ value: d.id, label: d.nombre || d.usuario?.nombre || `Docente #${d.id}` }))} />
+            options={docentes.map(d => ({ value: d.id, label: d.nombre || d.usuario?.nombre || `Docente #${d.id}` }))}
+          /> */}
+
+          <SelectConBusqueda
+            label="Docente"
+            value={form.docenteId}
+            onChange={v => setForm(f => ({ ...f, docenteId: v }))}
+            placeholder = "Seleccionar docente…"
+            error={errores.docenteId}
+            options={docentes.map(d => ({ value: d.id, label: d.nombre || d.usuario?.nombre || `Docente #${d.id}` }))}
+          />
+
           <Input label="Cupo máximo" value={form.cupoMaximo} type="number"
             onChange={v => setForm(f => ({ ...f, cupoMaximo: v }))}
-            placeholder="Ej: 30" error={errores.cupoMaximo} />
+            placeholder="Ej: 30" error={errores.cupoMaximo}
+          />
           <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
             <Btn variante="neutro" onClick={() => setModal(null)} full>Cancelar</Btn>
             <Btn variante="primario" onClick={handleGuardar} disabled={guardando} full>

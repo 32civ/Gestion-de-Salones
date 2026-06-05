@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMisMaterias, cancelarMatricula } from "../../api/matriculasApi";
+import { nombreDia } from '../../helpers/Dias';
 
 function MisMateriasEstudiante() {
     const navigate = useNavigate();
@@ -181,7 +182,7 @@ function MisMateriasEstudiante() {
                                             <td style={{ padding: "12px 8px", color: "#555" }}>{m.salonAsignado}</td>
                                             <td style={{ padding: "12px 8px", color: "#555" }}>
                                                 {m.horario
-                                                    ? `Día ${m.horario.dia} ${m.horario.horaInicio} - ${m.horario.horaFin}`
+                                                    ? ` ${nombreDia(m.horario.dia)} ${m.horario.horaInicio} - ${m.horario.horaFin}`
                                                     : <span style={{ color: "#ccc" }}>—</span>}
                                             </td>
                                             <td style={{ padding: "12px 8px" }}>

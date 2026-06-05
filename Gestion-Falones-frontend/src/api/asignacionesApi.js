@@ -35,7 +35,8 @@ const handleResponse = async (res) => {
 
 export const getAsignaciones = async () => {
   const res = await fetch(`${BASE_URL}/api/Asignaciones`, { headers: getAuthHeaders() });
-  return handleResponse(res);
+  const data = await handleResponse(res);
+  return data;
 };
 
 export const getAsignacion = async (id) => {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCursosDisponibles, matricularse } from "../../api/matriculasApi";
+import { nombreDia } from '../../helpers/Dias';
 
 function Matricula() {
     const navigate = useNavigate();
@@ -11,6 +12,7 @@ function Matricula() {
     const [matriculando, setMatriculando] = useState(null);
     const [exito, setExito] = useState(null);
     const [busqueda, setBusqueda] = useState("");
+    const [semestre, setSemestre] = useState("");
 
     useEffect(() => { cargarCursos(); }, []);
 
@@ -20,6 +22,7 @@ function Matricula() {
         try {
             const data = await getCursosDisponibles();
             setCarrera(data.carrera);
+            setSemestre(data.semestre); 
             setCursos(data.cursos);
         } catch (err) {
             setError(err.message);
@@ -64,8 +67,10 @@ function Matricula() {
     ];
 
     const cursosFiltrados = cursos.filter(c =>
+        c.asignacion && (
         c.materia.toLowerCase().includes(busqueda.toLowerCase()) ||
         c.docente.toLowerCase().includes(busqueda.toLowerCase())
+        )
     );
 
     return (
@@ -125,9 +130,7 @@ function Matricula() {
                     </button>
                     <div>
                         <h1 style={{ fontSize: "20px", fontWeight: 500, color: "#1a1a1a", margin: "0 0 2px" }}>Matrícula</h1>
-                        <p style={{ fontSize: "13px", color: "#888", margin: 0 }}>
-                            {carrera ? `Cursos disponibles — ${carrera}` : "Cargando..."}
-                        </p>
+                        <p style={{ fontSize: "13px", color: "#888", margin: 0 }}>{carrera? `${carrera} — ${semestre}`: "Cargando..."}</p>
                     </div>
                 </div>
 
@@ -149,6 +152,16 @@ function Matricula() {
 
                 {!loading && !error && (
                     <>
+                        {!loading && !error && semestre && (
+                            <div style={{
+                                display: "inline-flex", alignItems: "center", gap: "8px",
+                                background: "#FFF0E8", border: "1px solid #E8600A",
+                                borderRadius: "20px", padding: "5px 14px",
+                                fontSize: "12px", color: "#E8600A", fontWeight: 500,
+                                marginBottom: "1rem"
+                                }}>📅 Semestre activo: <strong>{semestre}</strong>
+                            </div>
+                         )}
                         {/* Buscador */}
                         <div style={{ background: "white", border: "0.5px solid #eee", borderRadius: "12px", padding: "1rem 1.25rem", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "10px" }}>
                             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#aaa" strokeWidth={2}>
@@ -170,11 +183,10 @@ function Matricula() {
                         {cursosFiltrados.length === 0 ? (
                             <div style={{ background: "white", border: "0.5px dashed #eee", borderRadius: "12px", padding: "3rem", textAlign: "center" }}>
                                 <p style={{ fontSize: "32px", margin: "0 0 8px" }}>📚</p>
-                                <p style={{ fontSize: "15px", fontWeight: 500, color: "#1a1a1a", margin: "0 0 4px" }}>
-                                    {busqueda ? "Sin resultados" : "No hay cursos disponibles"}
-                                </p>
                                 <p style={{ fontSize: "13px", color: "#aaa", margin: 0 }}>
-                                    {busqueda ? "Prueba con otro término." : "Ya estás matriculado en todos los cursos de tu carrera."}
+                                    {busqueda
+                                        ? "Prueba con otro término."
+                                        : "Aún no hay cursos con salón asignado para tu carrera."}  
                                 </p>
                             </div>
                         ) : (
@@ -202,7 +214,8 @@ function Matricula() {
                                         {curso.asignacion ? (
                                             <div style={{ background: "#f9f9f9", borderRadius: "8px", padding: "10px 12px", fontSize: "12px", color: "#555", display: "flex", flexDirection: "column", gap: "4px" }}>
                                                 <span>🏫 {curso.asignacion.salon}</span>
-                                                <span>🕐 Día {curso.asignacion.dia} {curso.asignacion.horaInicio} - {curso.asignacion.horaFin}</span>
+                                                <span>🕐 {curso.asignacion.dia} {curso.asignacion.horaInicio} - {curso.asignacion.horaFin}</span>
+                                                <span style={{ color: "#E8600A", fontWeight: 500 }}>📅 {semestre}</span>  {/* 👈 nuevo */}
                                             </div>
                                         ) : (
                                             <div style={{ background: "#fff8e1", borderRadius: "8px", padding: "10px 12px", fontSize: "12px", color: "#f9a825" }}>

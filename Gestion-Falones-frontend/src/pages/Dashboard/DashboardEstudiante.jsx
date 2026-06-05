@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMiPerfil } from "../../api/estudiantesApi";
 import { getMisMaterias } from "../../api/matriculasApi";
+import { nombreDia } from '../../helpers/Dias';
 
 function DashboardEstudiante() {
     const navigate = useNavigate();
@@ -172,7 +173,7 @@ function DashboardEstudiante() {
                                         <td style={{ padding: "10px 8px", color: "#555" }}>{m.salonAsignado}</td>
                                         <td style={{ padding: "10px 8px", color: "#555" }}>
                                             {m.horario
-                                                ? `Día ${m.horario.dia} ${m.horario.horaInicio} - ${m.horario.horaFin}`
+                                                ? ` ${nombreDia(m.horario.dia)} ${m.horario.horaInicio} - ${m.horario.horaFin}`
                                                 : <span style={{ color: "#ccc" }}>—</span>}
                                         </td>
                                     </tr>
