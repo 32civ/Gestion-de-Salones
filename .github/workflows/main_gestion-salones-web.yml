@@ -32,7 +32,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: Gestion-de-Salones-frontend/dist
+          path: Gestion-de-Falones-frontend/dist
 
   deploy:
     runs-on: ubuntu-latest
